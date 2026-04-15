@@ -61,12 +61,12 @@ def main():
     state = load_state()
 
     # ── Step 2: Market hours check ───────────────────────────────
-    if not is_market_hours():
-        logger.info("Market is closed — skipping cycle")
-        # Still save state to update last_run timestamp
-        save_state(state)
-        _log_summary(run_start, 0, 0, 0, skipped=True)
-        return
+    # if not is_market_hours():
+    #     logger.info("Market is closed — skipping cycle")
+    #     # Still save state to update last_run timestamp
+    #     save_state(state)
+    #     _log_summary(run_start, 0, 0, 0, skipped=True)
+    #     return
 
     # ── Step 3: Determine which tickers to scan ──────────────────
     symbols = get_symbols_for_cycle()
