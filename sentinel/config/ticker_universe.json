@@ -1,0 +1,2699 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "description": "V1 Anomaly Tracker \u2014 Ticker Universe & News Source Config",
+    "total_tickers": 502,
+    "kronos_input": {
+      "required_columns": [
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "optional_columns": [
+        "volume",
+        "amount"
+      ],
+      "max_context_mini": 2048,
+      "max_context_small": 512,
+      "alpaca_bar_timeframe": "15Min",
+      "lookback_bars": 200,
+      "notes": "Each ticker needs a pandas DataFrame of OHLCV candles + timestamp Series. Use predict_batch() to parallelize."
+    },
+    "news_sources": {
+      "finnhub": {
+        "endpoint": "https://finnhub.io/api/v1/company-news",
+        "params": "symbol={ticker}&from={date}&to={date}",
+        "rate_limit": "60 calls/min (free tier)",
+        "coverage": "Major wires \u2014 Bloomberg, Reuters, MarketWatch, CNBC, WSJ, SEC filings",
+        "best_for": "Large/mid-cap US equities with strong institutional coverage",
+        "limitation": "Weak on small-caps, no international non-English sources"
+      },
+      "gdelt": {
+        "endpoint": "https://api.gdeltproject.org/api/v2/doc/doc",
+        "params": "query={company_name}&mode=artlist&maxrecords=50&format=json&timespan=60min&sort=datedesc",
+        "rate_limit": "Rate-limited but no published hard cap \u2014 use 1-2 sec delays between calls",
+        "coverage": "250K+ global outlets, 152 languages machine-translated to English, broadcast TV via Internet Archive",
+        "best_for": "Geopolitical/macro events, international coverage, sentiment tone scoring, catching catalysts Finnhub misses",
+        "limitation": "No ticker-native search \u2014 must search by company name. 250 article cap per query. 3-month rolling window only.",
+        "search_strategy": {
+          "method": "Search by company name OR brand, not ticker symbol",
+          "example_queries": {
+            "AAPL": "Apple iPhone OR iPad OR Tim Cook",
+            "TSLA": "Tesla Elon Musk electric vehicle",
+            "JPM": "JPMorgan Chase Jamie Dimon",
+            "XLE": "oil energy crude petroleum",
+            "GLD": "gold prices bullion"
+          },
+          "tone_filter": "Use toneabs>5 to surface emotionally-charged coverage (likely catalysts)"
+        }
+      },
+      "pipeline_logic": "Finnhub fires FIRST (fast, structured JSON). If Finnhub returns <3 articles, GDELT fires as fallback with broader keyword search. For macro tickers (ETFs, commodities), GDELT fires FIRST since Finnhub has no coverage for these."
+    }
+  },
+  "tiers": {
+    "tier_1_bellwethers": {
+      "description": "Mega/Large Cap \u2014 S&P 100 core + key additions. Highest news coverage, most liquid, lowest noise.",
+      "scan_frequency": "*/15 * * * *",
+      "news_source_priority": [
+        "finnhub",
+        "gdelt"
+      ],
+      "tickers": [
+        {
+          "symbol": "AAPL",
+          "name": "Apple Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "MSFT",
+          "name": "Microsoft Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "NVDA",
+          "name": "NVIDIA Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "AMZN",
+          "name": "Amazon.com Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "GOOGL",
+          "name": "Alphabet Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "META",
+          "name": "Meta Platforms Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "TSLA",
+          "name": "Tesla Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "BRK.B",
+          "name": "Berkshire Hathaway",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "AVGO",
+          "name": "Broadcom Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "JPM",
+          "name": "JPMorgan Chase",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "LLY",
+          "name": "Eli Lilly",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "UNH",
+          "name": "UnitedHealth Group",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "V",
+          "name": "Visa Inc",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "MA",
+          "name": "Mastercard Inc",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "XOM",
+          "name": "Exxon Mobil",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "COST",
+          "name": "Costco Wholesale",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "HD",
+          "name": "Home Depot",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "PG",
+          "name": "Procter & Gamble",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "JNJ",
+          "name": "Johnson & Johnson",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "ABBV",
+          "name": "AbbVie Inc",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "WMT",
+          "name": "Walmart Inc",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "NFLX",
+          "name": "Netflix Inc",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "BAC",
+          "name": "Bank of America",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "CRM",
+          "name": "Salesforce Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "AMD",
+          "name": "Advanced Micro Devices",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "ORCL",
+          "name": "Oracle Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CVX",
+          "name": "Chevron Corp",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "MRK",
+          "name": "Merck & Co",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "KO",
+          "name": "Coca-Cola Co",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "PEP",
+          "name": "PepsiCo Inc",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "TMO",
+          "name": "Thermo Fisher Scientific",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "ACN",
+          "name": "Accenture PLC",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "LIN",
+          "name": "Linde PLC",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "MCD",
+          "name": "McDonald's Corp",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "CSCO",
+          "name": "Cisco Systems",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "ABT",
+          "name": "Abbott Laboratories",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "DHR",
+          "name": "Danaher Corp",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "WFC",
+          "name": "Wells Fargo",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "GE",
+          "name": "GE Aerospace",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "QCOM",
+          "name": "Qualcomm Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "ADBE",
+          "name": "Adobe Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "TXN",
+          "name": "Texas Instruments",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "INTU",
+          "name": "Intuit Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CAT",
+          "name": "Caterpillar Inc",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "AMAT",
+          "name": "Applied Materials",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "ISRG",
+          "name": "Intuitive Surgical",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "GS",
+          "name": "Goldman Sachs",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "MS",
+          "name": "Morgan Stanley",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "BKNG",
+          "name": "Booking Holdings",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "BLK",
+          "name": "BlackRock Inc",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "AXP",
+          "name": "American Express",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "SPGI",
+          "name": "S&P Global",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "SYK",
+          "name": "Stryker Corp",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "NOW",
+          "name": "ServiceNow Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "PFE",
+          "name": "Pfizer Inc",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "T",
+          "name": "AT&T Inc",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "VZ",
+          "name": "Verizon Communications",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "RTX",
+          "name": "RTX Corp",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "HON",
+          "name": "Honeywell International",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "UNP",
+          "name": "Union Pacific",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "NEE",
+          "name": "NextEra Energy",
+          "sector": "Utilities"
+        },
+        {
+          "symbol": "LOW",
+          "name": "Lowe's Companies",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "DE",
+          "name": "Deere & Co",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "BA",
+          "name": "Boeing Co",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "LMT",
+          "name": "Lockheed Martin",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "IBM",
+          "name": "IBM Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "C",
+          "name": "Citigroup Inc",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "SCHW",
+          "name": "Charles Schwab",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "CB",
+          "name": "Chubb Ltd",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "PLD",
+          "name": "Prologis Inc",
+          "sector": "Real Estate"
+        },
+        {
+          "symbol": "AMT",
+          "name": "American Tower",
+          "sector": "Real Estate"
+        },
+        {
+          "symbol": "SO",
+          "name": "Southern Company",
+          "sector": "Utilities"
+        },
+        {
+          "symbol": "DUK",
+          "name": "Duke Energy",
+          "sector": "Utilities"
+        },
+        {
+          "symbol": "CL",
+          "name": "Colgate-Palmolive",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "MMM",
+          "name": "3M Company",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "USB",
+          "name": "U.S. Bancorp",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "CI",
+          "name": "Cigna Group",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "BMY",
+          "name": "Bristol-Myers Squibb",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "GILD",
+          "name": "Gilead Sciences",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "ZTS",
+          "name": "Zoetis Inc",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "DIS",
+          "name": "Walt Disney Co",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "CMCSA",
+          "name": "Comcast Corp",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "MO",
+          "name": "Altria Group",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "PM",
+          "name": "Philip Morris International",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "TGT",
+          "name": "Target Corp",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "F",
+          "name": "Ford Motor Co",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "GM",
+          "name": "General Motors",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "UBER",
+          "name": "Uber Technologies",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "PANW",
+          "name": "Palo Alto Networks",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CRWD",
+          "name": "CrowdStrike Holdings",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SNPS",
+          "name": "Synopsys Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CDNS",
+          "name": "Cadence Design Systems",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "KLAC",
+          "name": "KLA Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "LRCX",
+          "name": "Lam Research",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "MRVL",
+          "name": "Marvell Technology",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "MU",
+          "name": "Micron Technology",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "INTC",
+          "name": "Intel Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "PYPL",
+          "name": "PayPal Holdings",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "ADP",
+          "name": "Automatic Data Processing",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "CME",
+          "name": "CME Group",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "ICE",
+          "name": "Intercontinental Exchange",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "FDX",
+          "name": "FedEx Corp",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "UPS",
+          "name": "United Parcel Service",
+          "sector": "Industrials"
+        }
+      ]
+    },
+    "tier_2_high_beta": {
+      "description": "High-volatility, high-momentum names. Most likely to generate anomaly signals. Includes meme stocks, recent IPOs, and speculative growth.",
+      "scan_frequency": "*/15 * * * *",
+      "news_source_priority": [
+        "finnhub",
+        "gdelt"
+      ],
+      "tickers": [
+        {
+          "symbol": "PLTR",
+          "name": "Palantir Technologies",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SMCI",
+          "name": "Super Micro Computer",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "COIN",
+          "name": "Coinbase Global",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "HOOD",
+          "name": "Robinhood Markets",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "RIVN",
+          "name": "Rivian Automotive",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "LCID",
+          "name": "Lucid Group",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "RKLB",
+          "name": "Rocket Lab USA",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "SOFI",
+          "name": "SoFi Technologies",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "AFRM",
+          "name": "Affirm Holdings",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "MARA",
+          "name": "Marathon Digital",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "RIOT",
+          "name": "Riot Platforms",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "MSTR",
+          "name": "MicroStrategy",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SQ",
+          "name": "Block Inc",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "SHOP",
+          "name": "Shopify Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SNAP",
+          "name": "Snap Inc",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "PINS",
+          "name": "Pinterest Inc",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "ROKU",
+          "name": "Roku Inc",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "TTD",
+          "name": "The Trade Desk",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "DDOG",
+          "name": "Datadog Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "NET",
+          "name": "Cloudflare Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "ZS",
+          "name": "Zscaler Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SNOW",
+          "name": "Snowflake Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "MDB",
+          "name": "MongoDB Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CRSP",
+          "name": "CRISPR Therapeutics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "MRNA",
+          "name": "Moderna Inc",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "BNTX",
+          "name": "BioNTech SE",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "DNA",
+          "name": "Ginkgo Bioworks",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "IONQ",
+          "name": "IonQ Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "RGTI",
+          "name": "Rigetti Computing",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "QBTS",
+          "name": "D-Wave Quantum",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "AI",
+          "name": "C3.ai Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "BBAI",
+          "name": "BigBear.ai",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SOUN",
+          "name": "SoundHound AI",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "UPST",
+          "name": "Upstart Holdings",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "PATH",
+          "name": "UiPath Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "U",
+          "name": "Unity Software",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "RBLX",
+          "name": "Roblox Corp",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "ABNB",
+          "name": "Airbnb Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "DASH",
+          "name": "DoorDash Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "LYFT",
+          "name": "Lyft Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CVNA",
+          "name": "Carvana Co",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "W",
+          "name": "Wayfair Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "CHWY",
+          "name": "Chewy Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "ETSY",
+          "name": "Etsy Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "ENPH",
+          "name": "Enphase Energy",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SEDG",
+          "name": "SolarEdge Technologies",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "FSLR",
+          "name": "First Solar",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "RUN",
+          "name": "Sunrun Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "PLUG",
+          "name": "Plug Power",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "SPCE",
+          "name": "Virgin Galactic",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "ASTS",
+          "name": "AST SpaceMobile",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "JOBY",
+          "name": "Joby Aviation",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "ACHR",
+          "name": "Archer Aviation",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "OKLO",
+          "name": "Oklo Inc",
+          "sector": "Utilities"
+        },
+        {
+          "symbol": "SMR",
+          "name": "NuScale Power",
+          "sector": "Utilities"
+        },
+        {
+          "symbol": "LEU",
+          "name": "Centrus Energy",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "NNE",
+          "name": "Nano Nuclear Energy",
+          "sector": "Utilities"
+        },
+        {
+          "symbol": "LUNR",
+          "name": "Intuitive Machines",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "RDW",
+          "name": "Redwire Corp",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "IREN",
+          "name": "Iris Energy",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CLSK",
+          "name": "CleanSpark",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "HUT",
+          "name": "Hut 8 Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CIFR",
+          "name": "Cipher Mining",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "IBIT",
+          "name": "iShares Bitcoin Trust ETF",
+          "sector": "Crypto ETF"
+        },
+        {
+          "symbol": "AMC",
+          "name": "AMC Entertainment",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "GME",
+          "name": "GameStop Corp",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "SAVE",
+          "name": "Spirit Airlines",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "AAL",
+          "name": "American Airlines",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "DAL",
+          "name": "Delta Air Lines",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "UAL",
+          "name": "United Airlines",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "CCL",
+          "name": "Carnival Corp",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "NCLH",
+          "name": "Norwegian Cruise Line",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "RCL",
+          "name": "Royal Caribbean",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "WYNN",
+          "name": "Wynn Resorts",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "MGM",
+          "name": "MGM Resorts",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "DKNG",
+          "name": "DraftKings Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "PENN",
+          "name": "Penn Entertainment",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "CELH",
+          "name": "Celsius Holdings",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "HIMS",
+          "name": "Hims & Hers Health",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "DOCS",
+          "name": "Doximity Inc",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "AXON",
+          "name": "Axon Enterprise",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "DUOL",
+          "name": "Duolingo Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "APP",
+          "name": "AppLovin Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "RDDT",
+          "name": "Reddit Inc",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "ARM",
+          "name": "Arm Holdings",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CART",
+          "name": "Instacart",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "BIRK",
+          "name": "Birkenstock Holding",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "GRAB",
+          "name": "Grab Holdings",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SE",
+          "name": "Sea Ltd",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "BABA",
+          "name": "Alibaba Group",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "JD",
+          "name": "JD.com",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "PDD",
+          "name": "PDD Holdings",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "NIO",
+          "name": "NIO Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "LI",
+          "name": "Li Auto",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "XPEV",
+          "name": "XPeng Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "BIDU",
+          "name": "Baidu Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "TSM",
+          "name": "Taiwan Semiconductor",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "ASML",
+          "name": "ASML Holding",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SPOT",
+          "name": "Spotify Technology",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "BILL",
+          "name": "Bill Holdings",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CFLT",
+          "name": "Confluent Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "S",
+          "name": "SentinelOne Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "IOT",
+          "name": "Samsara Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "GTLB",
+          "name": "GitLab Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "ESTC",
+          "name": "Elastic NV",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "TMDX",
+          "name": "TransMedics Group",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "OSCR",
+          "name": "Oscar Health",
+          "sector": "Healthcare"
+        }
+      ]
+    },
+    "tier_3_sector_etfs": {
+      "description": "Sector and thematic ETFs. Essential for detecting rotations and macro-driven moves. GDELT is primary news source here since Finnhub doesn't cover ETFs well.",
+      "scan_frequency": "*/15 * * * *",
+      "news_source_priority": [
+        "gdelt",
+        "finnhub"
+      ],
+      "gdelt_search_keywords": "Use thematic keywords, not ETF names",
+      "tickers": [
+        {
+          "symbol": "SPY",
+          "name": "S&P 500 ETF",
+          "gdelt_query": "stock market S&P 500 Wall Street"
+        },
+        {
+          "symbol": "QQQ",
+          "name": "Nasdaq 100 ETF",
+          "gdelt_query": "Nasdaq technology stocks"
+        },
+        {
+          "symbol": "IWM",
+          "name": "Russell 2000 ETF",
+          "gdelt_query": "small cap stocks Russell"
+        },
+        {
+          "symbol": "DIA",
+          "name": "Dow Jones ETF",
+          "gdelt_query": "Dow Jones industrial average"
+        },
+        {
+          "symbol": "XLK",
+          "name": "Technology Select SPDR",
+          "gdelt_query": "technology sector stocks"
+        },
+        {
+          "symbol": "XLF",
+          "name": "Financial Select SPDR",
+          "gdelt_query": "banking financial sector"
+        },
+        {
+          "symbol": "XLE",
+          "name": "Energy Select SPDR",
+          "gdelt_query": "oil energy crude petroleum"
+        },
+        {
+          "symbol": "XLV",
+          "name": "Health Care Select SPDR",
+          "gdelt_query": "healthcare pharma sector"
+        },
+        {
+          "symbol": "XLI",
+          "name": "Industrial Select SPDR",
+          "gdelt_query": "industrial manufacturing sector"
+        },
+        {
+          "symbol": "XLP",
+          "name": "Consumer Staples Select SPDR",
+          "gdelt_query": "consumer staples retail"
+        },
+        {
+          "symbol": "XLY",
+          "name": "Consumer Discretionary Select SPDR",
+          "gdelt_query": "consumer spending retail"
+        },
+        {
+          "symbol": "XLU",
+          "name": "Utilities Select SPDR",
+          "gdelt_query": "utilities power grid electricity"
+        },
+        {
+          "symbol": "XLRE",
+          "name": "Real Estate Select SPDR",
+          "gdelt_query": "real estate housing market"
+        },
+        {
+          "symbol": "XLC",
+          "name": "Communication Services Select SPDR",
+          "gdelt_query": "media telecom communications"
+        },
+        {
+          "symbol": "XLB",
+          "name": "Materials Select SPDR",
+          "gdelt_query": "materials mining commodities"
+        },
+        {
+          "symbol": "SMH",
+          "name": "VanEck Semiconductor ETF",
+          "gdelt_query": "semiconductor chip shortage"
+        },
+        {
+          "symbol": "SOXX",
+          "name": "iShares Semiconductor ETF",
+          "gdelt_query": "semiconductor industry chips"
+        },
+        {
+          "symbol": "XBI",
+          "name": "SPDR Biotech ETF",
+          "gdelt_query": "biotech FDA drug approval"
+        },
+        {
+          "symbol": "IBB",
+          "name": "iShares Biotechnology ETF",
+          "gdelt_query": "biotechnology pharmaceutical"
+        },
+        {
+          "symbol": "ARKK",
+          "name": "ARK Innovation ETF",
+          "gdelt_query": "disruptive innovation technology"
+        },
+        {
+          "symbol": "KWEB",
+          "name": "KraneShares China Internet ETF",
+          "gdelt_query": "China internet technology regulation"
+        },
+        {
+          "symbol": "FXI",
+          "name": "iShares China Large-Cap ETF",
+          "gdelt_query": "China economy stock market"
+        },
+        {
+          "symbol": "EWJ",
+          "name": "iShares MSCI Japan ETF",
+          "gdelt_query": "Japan economy Bank of Japan"
+        },
+        {
+          "symbol": "EWZ",
+          "name": "iShares MSCI Brazil ETF",
+          "gdelt_query": "Brazil economy emerging market"
+        },
+        {
+          "symbol": "EEM",
+          "name": "iShares MSCI Emerging Markets ETF",
+          "gdelt_query": "emerging markets developing economy"
+        },
+        {
+          "symbol": "VWO",
+          "name": "Vanguard FTSE Emerging Markets ETF",
+          "gdelt_query": "emerging markets global trade"
+        },
+        {
+          "symbol": "TAN",
+          "name": "Invesco Solar ETF",
+          "gdelt_query": "solar energy renewable clean"
+        },
+        {
+          "symbol": "ICLN",
+          "name": "iShares Clean Energy ETF",
+          "gdelt_query": "clean energy renewable green"
+        },
+        {
+          "symbol": "LIT",
+          "name": "Global X Lithium & Battery ETF",
+          "gdelt_query": "lithium battery electric vehicle"
+        },
+        {
+          "symbol": "URA",
+          "name": "Global X Uranium ETF",
+          "gdelt_query": "uranium nuclear power energy"
+        },
+        {
+          "symbol": "XHB",
+          "name": "SPDR Homebuilders ETF",
+          "gdelt_query": "housing construction homebuilder"
+        },
+        {
+          "symbol": "KRE",
+          "name": "SPDR Regional Banking ETF",
+          "gdelt_query": "regional bank community banking"
+        },
+        {
+          "symbol": "XME",
+          "name": "SPDR S&P Metals & Mining ETF",
+          "gdelt_query": "metals mining steel copper"
+        },
+        {
+          "symbol": "IYT",
+          "name": "iShares Transportation ETF",
+          "gdelt_query": "transportation logistics shipping"
+        },
+        {
+          "symbol": "XAR",
+          "name": "SPDR Aerospace & Defense ETF",
+          "gdelt_query": "defense military aerospace"
+        },
+        {
+          "symbol": "HACK",
+          "name": "ETFMG Prime Cyber Security ETF",
+          "gdelt_query": "cybersecurity hacking data breach"
+        },
+        {
+          "symbol": "BOTZ",
+          "name": "Global X Robotics & AI ETF",
+          "gdelt_query": "robotics artificial intelligence automation"
+        },
+        {
+          "symbol": "JETS",
+          "name": "U.S. Global Jets ETF",
+          "gdelt_query": "airlines aviation air travel"
+        },
+        {
+          "symbol": "BITO",
+          "name": "ProShares Bitcoin Strategy ETF",
+          "gdelt_query": "bitcoin cryptocurrency crypto regulation"
+        },
+        {
+          "symbol": "GDX",
+          "name": "VanEck Gold Miners ETF",
+          "gdelt_query": "gold mining gold price"
+        },
+        {
+          "symbol": "GDXJ",
+          "name": "VanEck Junior Gold Miners ETF",
+          "gdelt_query": "gold mining junior miners"
+        },
+        {
+          "symbol": "SLV",
+          "name": "iShares Silver Trust",
+          "gdelt_query": "silver prices precious metals"
+        },
+        {
+          "symbol": "COPX",
+          "name": "Global X Copper Miners ETF",
+          "gdelt_query": "copper mining industrial metals"
+        },
+        {
+          "symbol": "MOO",
+          "name": "VanEck Agribusiness ETF",
+          "gdelt_query": "agriculture farming commodities crop"
+        }
+      ]
+    },
+    "tier_4_macro_indicators": {
+      "description": "Macro barometers \u2014 bonds, commodities, currencies, volatility. These are your early-warning system for regime changes. GDELT is primary since these move on geopolitical/macro news.",
+      "scan_frequency": "*/15 * * * *",
+      "news_source_priority": [
+        "gdelt"
+      ],
+      "tickers": [
+        {
+          "symbol": "TLT",
+          "name": "iShares 20+ Year Treasury ETF",
+          "gdelt_query": "treasury bonds interest rates Federal Reserve"
+        },
+        {
+          "symbol": "IEF",
+          "name": "iShares 7-10 Year Treasury ETF",
+          "gdelt_query": "treasury yield bond market"
+        },
+        {
+          "symbol": "SHY",
+          "name": "iShares 1-3 Year Treasury ETF",
+          "gdelt_query": "short term treasury rates"
+        },
+        {
+          "symbol": "TIP",
+          "name": "iShares TIPS Bond ETF",
+          "gdelt_query": "inflation protected securities TIPS"
+        },
+        {
+          "symbol": "HYG",
+          "name": "iShares High Yield Corporate Bond ETF",
+          "gdelt_query": "high yield junk bonds credit"
+        },
+        {
+          "symbol": "LQD",
+          "name": "iShares Investment Grade Bond ETF",
+          "gdelt_query": "corporate bonds investment grade credit"
+        },
+        {
+          "symbol": "JNK",
+          "name": "SPDR High Yield Bond ETF",
+          "gdelt_query": "high yield bonds credit spreads"
+        },
+        {
+          "symbol": "GLD",
+          "name": "SPDR Gold Shares",
+          "gdelt_query": "gold prices bullion safe haven"
+        },
+        {
+          "symbol": "IAU",
+          "name": "iShares Gold Trust",
+          "gdelt_query": "gold investment precious metals"
+        },
+        {
+          "symbol": "USO",
+          "name": "United States Oil Fund",
+          "gdelt_query": "crude oil WTI prices OPEC"
+        },
+        {
+          "symbol": "UNG",
+          "name": "United States Natural Gas Fund",
+          "gdelt_query": "natural gas prices energy"
+        },
+        {
+          "symbol": "DBA",
+          "name": "Invesco DB Agriculture Fund",
+          "gdelt_query": "agriculture commodities grain wheat"
+        },
+        {
+          "symbol": "UUP",
+          "name": "Invesco DB US Dollar Index",
+          "gdelt_query": "US dollar strength currency exchange"
+        },
+        {
+          "symbol": "FXE",
+          "name": "Invesco CurrencyShares Euro",
+          "gdelt_query": "euro eurozone ECB currency"
+        },
+        {
+          "symbol": "FXY",
+          "name": "Invesco CurrencyShares Japanese Yen",
+          "gdelt_query": "Japanese yen Bank of Japan currency"
+        },
+        {
+          "symbol": "FXB",
+          "name": "Invesco CurrencyShares British Pound",
+          "gdelt_query": "British pound sterling Bank of England"
+        },
+        {
+          "symbol": "UVXY",
+          "name": "ProShares Ultra VIX Short-Term",
+          "gdelt_query": "market volatility VIX fear index"
+        },
+        {
+          "symbol": "VXX",
+          "name": "iPath Series B S&P 500 VIX",
+          "gdelt_query": "VIX volatility stock market fear"
+        },
+        {
+          "symbol": "VIXY",
+          "name": "ProShares VIX Short-Term Futures",
+          "gdelt_query": "market volatility uncertainty"
+        },
+        {
+          "symbol": "SQQQ",
+          "name": "ProShares UltraPro Short QQQ",
+          "gdelt_query": "Nasdaq selloff technology stocks decline"
+        },
+        {
+          "symbol": "SPXU",
+          "name": "ProShares UltraPro Short S&P 500",
+          "gdelt_query": "stock market crash decline bear"
+        },
+        {
+          "symbol": "TQQQ",
+          "name": "ProShares UltraPro QQQ",
+          "gdelt_query": "Nasdaq rally technology stocks surge"
+        },
+        {
+          "symbol": "SOXL",
+          "name": "Direxion Daily Semiconductor Bull 3x",
+          "gdelt_query": "semiconductor surge chip demand"
+        },
+        {
+          "symbol": "SOXS",
+          "name": "Direxion Daily Semiconductor Bear 3x",
+          "gdelt_query": "semiconductor decline chip slump"
+        },
+        {
+          "symbol": "XRT",
+          "name": "SPDR S&P Retail ETF",
+          "gdelt_query": "retail sales consumer spending"
+        },
+        {
+          "symbol": "VNQ",
+          "name": "Vanguard Real Estate ETF",
+          "gdelt_query": "real estate REIT housing market"
+        },
+        {
+          "symbol": "EMB",
+          "name": "iShares J.P. Morgan USD Emerging Markets Bond",
+          "gdelt_query": "emerging market debt bonds"
+        }
+      ]
+    },
+    "tier_5_small_cap_movers": {
+      "description": "High-volume small/mid-caps with outsized move potential. Finnhub coverage is spotty here, so GDELT becomes critical. Consider alert-on-volatility-only as fallback when news is unavailable.",
+      "scan_frequency": "0 */1 * * *",
+      "news_source_priority": [
+        "finnhub",
+        "gdelt"
+      ],
+      "fallback_strategy": "If both Finnhub AND GDELT return 0 articles, still alert on volatility signal alone with note: 'No catalyst identified \u2014 check SEC filings'",
+      "tickers": [
+        {
+          "symbol": "CLOV",
+          "name": "Clover Health",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "OPEN",
+          "name": "Opendoor Technologies",
+          "sector": "Real Estate"
+        },
+        {
+          "symbol": "WISH",
+          "name": "ContextLogic",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "ME",
+          "name": "23andMe",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "SKLZ",
+          "name": "Skillz Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "LAZR",
+          "name": "Luminar Technologies",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "LIDR",
+          "name": "AEye Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "MVST",
+          "name": "Microvast Holdings",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "QS",
+          "name": "QuantumScape",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "STEM",
+          "name": "Stem Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CHPT",
+          "name": "ChargePoint Holdings",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "BLNK",
+          "name": "Blink Charging",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "EVGO",
+          "name": "EVgo Inc",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "NKLA",
+          "name": "Nikola Corp",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "GOEV",
+          "name": "Canoo Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "PSNY",
+          "name": "Polestar Automotive",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "FFIE",
+          "name": "Faraday Future",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "VLD",
+          "name": "Velo3D Inc",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "INDI",
+          "name": "Indie Semiconductor",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "GSAT",
+          "name": "Globalstar Inc",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "MNDY",
+          "name": "monday.com",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CRDO",
+          "name": "Credo Technology",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CAVA",
+          "name": "CAVA Group",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "TOST",
+          "name": "Toast Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "BROS",
+          "name": "Dutch Bros",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "COCO",
+          "name": "Vita Coco Company",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "ARQT",
+          "name": "Arcutis Biotherapeutics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "RXRX",
+          "name": "Recursion Pharmaceuticals",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "EXAI",
+          "name": "Exscientia",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "PRCT",
+          "name": "PROCEPT BioRobotics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "VERA",
+          "name": "Vera Therapeutics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "SEZL",
+          "name": "Sezzle Inc",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "NU",
+          "name": "Nu Holdings",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "RELY",
+          "name": "Remitly Global",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "DV",
+          "name": "DoubleVerify Holdings",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "IS",
+          "name": "IronSource",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "GLBE",
+          "name": "Global-e Online",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CELZ",
+          "name": "Creative Medical Technology",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "WOLF",
+          "name": "Wolfspeed Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "AEHR",
+          "name": "Aehr Test Systems",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "ACLS",
+          "name": "Axcelis Technologies",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "FORM",
+          "name": "FormFactor Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "PAYO",
+          "name": "Payoneer Global",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "OLO",
+          "name": "Olo Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "VNET",
+          "name": "VNET Group",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "BTDR",
+          "name": "Bitdeer Technologies",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "WULF",
+          "name": "TeraWulf Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CORZ",
+          "name": "Core Scientific",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "VRT",
+          "name": "Vertiv Holdings",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "GEV",
+          "name": "GE Vernova",
+          "sector": "Utilities"
+        },
+        {
+          "symbol": "VSCO",
+          "name": "Victoria's Secret",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "DJT",
+          "name": "Trump Media & Technology",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "PHUN",
+          "name": "Phunware Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "DWAC",
+          "name": "Digital World Acquisition",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "IRM",
+          "name": "Iron Mountain",
+          "sector": "Real Estate"
+        },
+        {
+          "symbol": "EQIX",
+          "name": "Equinix Inc",
+          "sector": "Real Estate"
+        },
+        {
+          "symbol": "DLR",
+          "name": "Digital Realty Trust",
+          "sector": "Real Estate"
+        },
+        {
+          "symbol": "ONTO",
+          "name": "Onto Innovation",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CAMT",
+          "name": "Camtek Ltd",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "TER",
+          "name": "Teradyne Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "LSCC",
+          "name": "Lattice Semiconductor",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "ALGM",
+          "name": "Allegro MicroSystems",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CRUS",
+          "name": "Cirrus Logic",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "RMBS",
+          "name": "Rambus Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "PI",
+          "name": "Impinj Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "NNOX",
+          "name": "Nano-X Imaging",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "MDGL",
+          "name": "Madrigal Pharmaceuticals",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "SRPT",
+          "name": "Sarepta Therapeutics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "PCVX",
+          "name": "Vaxcyte Inc",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "DNLI",
+          "name": "Denali Therapeutics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "TWST",
+          "name": "Twist Bioscience",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "BEAM",
+          "name": "Beam Therapeutics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "NTLA",
+          "name": "Intellia Therapeutics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "EDIT",
+          "name": "Editas Medicine",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "VERV",
+          "name": "Verve Therapeutics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "SMMT",
+          "name": "Summit Therapeutics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "GERN",
+          "name": "Geron Corp",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "APLS",
+          "name": "Apellis Pharmaceuticals",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "LEGN",
+          "name": "Legend Biotech",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "KURA",
+          "name": "Kura Oncology",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "IMVT",
+          "name": "Immunovant Inc",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "KRYS",
+          "name": "Krystal Biotech",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "VKTX",
+          "name": "Viking Therapeutics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "GPCR",
+          "name": "Structure Therapeutics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "ALNY",
+          "name": "Alnylam Pharmaceuticals",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "BMRN",
+          "name": "BioMarin Pharmaceutical",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "NBIX",
+          "name": "Neurocrine Biosciences",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "INSM",
+          "name": "Insmed Inc",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "NUVB",
+          "name": "Nuvation Bio",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "ROIV",
+          "name": "Roivant Sciences",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "TEM",
+          "name": "Tempus AI",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "FLNC",
+          "name": "Fluence Energy",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "ARRY",
+          "name": "Array Technologies",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SHLS",
+          "name": "Shoals Technologies",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "MP",
+          "name": "MP Materials",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "LAC",
+          "name": "Lithium Americas",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "ALB",
+          "name": "Albemarle Corp",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "SQM",
+          "name": "Sociedad Quimica y Minera",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "FREY",
+          "name": "Freyr Battery",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "ENVX",
+          "name": "Enovis Corp",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "BE",
+          "name": "Bloom Energy",
+          "sector": "Industrials"
+        },
+        {
+          "symbol": "MTTR",
+          "name": "Matterport Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "PRCH",
+          "name": "Porch Group",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "FLYW",
+          "name": "Flywire Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "AUR",
+          "name": "Aurora Innovation",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "AMBA",
+          "name": "Ambarella Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SITM",
+          "name": "SiTime Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CPNG",
+          "name": "Coupang Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "ANET",
+          "name": "Arista Networks",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SMTC",
+          "name": "Semtech Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "ACVA",
+          "name": "ACV Auctions",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "DOCN",
+          "name": "DigitalOcean Holdings",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "BRZE",
+          "name": "Braze Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "RVMD",
+          "name": "Revolution Medicines",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "ARWR",
+          "name": "Arrowhead Pharmaceuticals",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "CYTK",
+          "name": "Cytokinetics Inc",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "NTRA",
+          "name": "Natera Inc",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "DXCM",
+          "name": "DexCom Inc",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "PODD",
+          "name": "Insulet Corp",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "RPRX",
+          "name": "Royalty Pharma",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "ITCI",
+          "name": "Intra-Cellular Therapies",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "EXEL",
+          "name": "Exelixis Inc",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "RARE",
+          "name": "Ultragenyx Pharmaceutical",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "SRRK",
+          "name": "Scholar Rock Holding",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "MELI",
+          "name": "MercadoLibre",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "GLOB",
+          "name": "Globant SA",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "LMND",
+          "name": "Lemonade Inc",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "RAMP",
+          "name": "LiveRamp Holdings",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "PWSC",
+          "name": "PowerSchool Holdings",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "QLYS",
+          "name": "Qualys Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "TENB",
+          "name": "Tenable Holdings",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "RPD",
+          "name": "Rapid7 Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CYBR",
+          "name": "CyberArk Software",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "VRNS",
+          "name": "Varonis Systems",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "FTNT",
+          "name": "Fortinet Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "WDAY",
+          "name": "Workday Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "VEEV",
+          "name": "Veeva Systems",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "ZI",
+          "name": "ZoomInfo Technologies",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "TWLO",
+          "name": "Twilio Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "OKTA",
+          "name": "Okta Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "COUP",
+          "name": "Coupa Software",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "HUBS",
+          "name": "HubSpot Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "PCOR",
+          "name": "Procore Technologies",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "FOUR",
+          "name": "Shift4 Payments",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "GFS",
+          "name": "GlobalFoundries",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "STNE",
+          "name": "StoneCo Ltd",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "PAGS",
+          "name": "PagSeguro Digital",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "XP",
+          "name": "XP Inc",
+          "sector": "Financials"
+        },
+        {
+          "symbol": "DNUT",
+          "name": "Krispy Kreme",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "SBUX",
+          "name": "Starbucks Corp",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "CMG",
+          "name": "Chipotle Mexican Grill",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "WING",
+          "name": "Wingstop Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "SHAK",
+          "name": "Shake Shack",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "EAT",
+          "name": "Brinker International",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "TXRH",
+          "name": "Texas Roadhouse",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "DPZ",
+          "name": "Domino's Pizza",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "FUBO",
+          "name": "fuboTV Inc",
+          "sector": "Communication Services"
+        },
+        {
+          "symbol": "BFLY",
+          "name": "Butterfly Network",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "GDRX",
+          "name": "GoodRx Holdings",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "ACAD",
+          "name": "ACADIA Pharmaceuticals",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "CPRX",
+          "name": "Catalyst Pharmaceuticals",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "XENE",
+          "name": "Xenon Pharmaceuticals",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "VRNA",
+          "name": "Verona Pharma",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "TGTX",
+          "name": "TG Therapeutics",
+          "sector": "Healthcare"
+        },
+        {
+          "symbol": "ELF",
+          "name": "e.l.f. Beauty",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "OLPX",
+          "name": "Olaplex Holdings",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "ONON",
+          "name": "On Holding AG",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "DECK",
+          "name": "Deckers Outdoor",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "LULU",
+          "name": "Lululemon Athletica",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "CROX",
+          "name": "Crocs Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "SKX",
+          "name": "Skechers USA",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "MNST",
+          "name": "Monster Beverage",
+          "sector": "Consumer Staples"
+        },
+        {
+          "symbol": "CLF",
+          "name": "Cleveland-Cliffs",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "X",
+          "name": "United States Steel",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "AA",
+          "name": "Alcoa Corp",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "FCX",
+          "name": "Freeport-McMoRan",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "VALE",
+          "name": "Vale SA",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "RIO",
+          "name": "Rio Tinto",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "BHP",
+          "name": "BHP Group",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "GOLD",
+          "name": "Barrick Gold",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "NEM",
+          "name": "Newmont Corp",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "WPM",
+          "name": "Wheaton Precious Metals",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "AG",
+          "name": "First Majestic Silver",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "PAAS",
+          "name": "Pan American Silver",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "CDE",
+          "name": "Coeur Mining",
+          "sector": "Materials"
+        },
+        {
+          "symbol": "BTU",
+          "name": "Peabody Energy",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "ARCH",
+          "name": "Arch Resources",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "CTRA",
+          "name": "Coterra Energy",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "DVN",
+          "name": "Devon Energy",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "FANG",
+          "name": "Diamondback Energy",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "EOG",
+          "name": "EOG Resources",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "PXD",
+          "name": "Pioneer Natural Resources",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "OXY",
+          "name": "Occidental Petroleum",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "MPC",
+          "name": "Marathon Petroleum",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "VLO",
+          "name": "Valero Energy",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "PSX",
+          "name": "Phillips 66",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "SLB",
+          "name": "Schlumberger Ltd",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "HAL",
+          "name": "Halliburton Co",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "BKR",
+          "name": "Baker Hughes",
+          "sector": "Energy"
+        },
+        {
+          "symbol": "CWEN",
+          "name": "Clearway Energy",
+          "sector": "Utilities"
+        },
+        {
+          "symbol": "AES",
+          "name": "AES Corp",
+          "sector": "Utilities"
+        },
+        {
+          "symbol": "VST",
+          "name": "Vistra Energy",
+          "sector": "Utilities"
+        },
+        {
+          "symbol": "CEG",
+          "name": "Constellation Energy",
+          "sector": "Utilities"
+        },
+        {
+          "symbol": "EXPE",
+          "name": "Expedia Group",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "MAR",
+          "name": "Marriott International",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "HLT",
+          "name": "Hilton Worldwide",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "NKE",
+          "name": "Nike Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "PTON",
+          "name": "Peloton Interactive",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "GPRO",
+          "name": "GoPro Inc",
+          "sector": "Consumer Discretionary"
+        },
+        {
+          "symbol": "ZM",
+          "name": "Zoom Video",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "DOCU",
+          "name": "DocuSign Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "FSLY",
+          "name": "Fastly Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SUMO",
+          "name": "Sumo Logic",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "CIEN",
+          "name": "Ciena Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "LITE",
+          "name": "Lumentum Holdings",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "COHR",
+          "name": "Coherent Corp",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "ON",
+          "name": "ON Semiconductor",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "SWKS",
+          "name": "Skyworks Solutions",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "QRVO",
+          "name": "Qorvo Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "MTSI",
+          "name": "MACOM Technology",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "PSTG",
+          "name": "Pure Storage",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "NTAP",
+          "name": "NetApp Inc",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "HPE",
+          "name": "Hewlett Packard Enterprise",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "DELL",
+          "name": "Dell Technologies",
+          "sector": "Technology"
+        },
+        {
+          "symbol": "HPQ",
+          "name": "HP Inc",
+          "sector": "Technology"
+        }
+      ]
+    }
+  },
+  "news_source_config": {
+    "finnhub": {
+      "base_url": "https://finnhub.io/api/v1",
+      "endpoints_used": [
+        {
+          "path": "/company-news",
+          "purpose": "Headlines for individual tickers",
+          "params": "symbol, from, to"
+        },
+        {
+          "path": "/news",
+          "purpose": "General market news (fallback)",
+          "params": "category=general"
+        }
+      ],
+      "auth": "env:FINNHUB_API_KEY as query param &token=",
+      "rate_strategy": "60 req/min. Budget: ~5-10 anomaly tickers per cycle max. Queue by sigma magnitude descending."
+    },
+    "gdelt": {
+      "base_url": "https://api.gdeltproject.org/api/v2/doc/doc",
+      "auth": "None \u2014 completely free, no API key",
+      "output_format": "json",
+      "max_records_per_query": 250,
+      "rolling_window": "3 months",
+      "rate_strategy": "No published limit but rate-limited under load. Use 1-2 sec delay between calls. Limit to ~10-15 calls per 15-min cycle.",
+      "response_fields": [
+        "url",
+        "title",
+        "seendate",
+        "domain",
+        "language",
+        "sourcecountry",
+        "socialimage"
+      ],
+      "tone_scoring": "Built-in. Returns avg tone per article. Use toneabs>5 to filter for high-emotion coverage likely to be market-moving.",
+      "multilingual": "Searches across 65 machine-translated languages \u2014 catches international catalysts Finnhub misses entirely",
+      "query_tips": [
+        "Search by company name, NOT ticker symbol",
+        "Use OR for brand variants: 'Apple iPhone OR iPad OR MacBook'",
+        "Add sourcecountry:US to reduce noise for domestic equities",
+        "Use near10: operator for precision: near10:'Tesla recall'",
+        "timespan=60min for recent, timespan=24h for broader context"
+      ]
+    }
+  },
+  "pipeline_integration": {
+    "anomaly_detected_flow": [
+      "1. Kronos flags ticker with sigma > threshold",
+      "2. Check tier to determine news_source_priority",
+      "3. Fire primary source (Finnhub for equities, GDELT for ETFs/macro)",
+      "4. If primary returns <3 articles, fire secondary source",
+      "5. Merge and deduplicate articles by URL",
+      "6. Pass merged payload to Narrator (Groq/Gemini) for synthesis",
+      "7. Include GDELT tone score in Discord alert if available",
+      "8. Push to Discord webhook"
+    ],
+    "gdelt_bonus_features": [
+      "Tone timeline: Track sentiment shift over 24h for flagged ticker",
+      "Volume spike detection: If GDELT article volume for a company jumps 3x vs baseline, flag even without Kronos anomaly",
+      "Cross-language alerts: International coverage appearing before US market open = potential alpha"
+    ]
+  }
+}

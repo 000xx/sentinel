@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENTINEL — V1 Anomaly Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #060a10;
+    --card: rgba(10, 14, 20, 0.85);
+    --border: rgba(255,255,255,0.06);
+    --text: #e8eaed;
+    --text-dim: rgba(255,255,255,0.35);
+    --text-faint: rgba(255,255,255,0.2);
+    --green: #00e676;
+    --red: #ff1744;
+    --amber: #ffab00;
+    --blue: #00b0ff;
+    --orange: #ff6e40;
+    --mono: 'IBM Plex Mono', 'Fira Code', monospace;
+    --mono-title: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* Grid overlay */
+  body::before {
+    content: '';
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none; z-index: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 20px 16px; }
+
+  /* Header */
+  .header { margin-bottom: 24px; }
+  .header-top { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(0,230,118,0.4);
+    animation: pulse 2s infinite;
+  }
+  .live-dot.paused { background: var(--red); box-shadow: 0 0 8px rgba(255,23,68,0.4); animation: none; }
+  .title { font-size: 16px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.8); font-family: var(--mono-title); }
+  .subtitle { font-size: 10px; color: var(--text-faint); letter-spacing: 0.1em; }
+  .header-meta { font-size: 10px; color: var(--text-faint); display: flex; gap: 16px; flex-wrap: wrap; }
+
+  /* Stats bar */
+  .stats { display: flex; gap: 0; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 2px; overflow: hidden; flex-wrap: wrap; }
+  .stat { flex: 1 1 0; min-width: 90px; padding: 10px 14px; border-right: 1px solid var(--border); background: rgba(10,14,20,0.6); }
+  .stat:last-child { border-right: none; }
+  .stat-label { font-size: 8px; color: rgba(255,255,255,0.3); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 4px; }
+  .stat-value { font-size: 18px; font-weight: 700; font-family: var(--mono-title); }
+
+  /* Controls */
+  .controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    background: transparent; border: 1px solid var(--border); color: var(--text-faint);
+    padding: 5px 10px; border-radius: 2px; font-size: 9px; cursor: pointer;
+    letter-spacing: 0.08em; font-family: var(--mono); transition: all 0.15s;
+  }
+  .btn:hover { border-color: rgba(255,255,255,0.15); color: var(--text-dim); }
+  .btn.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: var(--text); }
+  .btn-live { background: rgba(0,230,118,0.1); border-color: rgba(0,230,118,0.2); color: var(--green); font-weight: 600; }
+  .separator { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+  .divider { height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent); margin-bottom: 12px; }
+  .filter-count { font-size: 9px; color: var(--text-faint); letter-spacing: 0.1em; margin-bottom: 10px; }
+
+  /* Alert card */
+  .alert-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 16px 20px;
+    margin-bottom: 2px;
+    position: relative;
+    overflow: hidden;
+    border-left-width: 3px;
+    border-left-style: solid;
+  }
+  .alert-card.new { animation: slideIn 0.4s ease-out; }
+  .alert-card.bullish { border-left-color: var(--green); }
+  .alert-card.bearish { border-left-color: var(--red); }
+  .alert-card.uncertain { border-left-color: var(--amber); }
+  .alert-card.event-driven { border-left-color: var(--blue); }
+
+  .alert-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .alert-ticker { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: 0.05em; font-family: var(--mono-title); }
+  .alert-company { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+  .alert-badges { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+  .badge {
+    font-size: 9px; padding: 2px 6px; border-radius: 2px;
+    letter-spacing: 0.1em; font-weight: 600; border: 1px solid;
+  }
+  .badge-escalating { color: var(--red); border-color: rgba(255,23,68,0.33); }
+  .badge-sentiment { border-color: currentColor; opacity: 0.7; }
+  .badge-tier { color: var(--text-faint); border-color: var(--border); }
+
+  .alert-metrics { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .metric-group { }
+  .metric-group.bordered { border-left: 1px solid var(--border); padding-left: 20px; }
+  .metric-label { font-size: 9px; color: rgba(255,255,255,0.3); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 3px; }
+  .metric-value { font-size: 15px; font-family: var(--mono); }
+  .metric-value.sigma { font-size: 22px; font-weight: 700; }
+
+  .alert-verdict { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 10px; font-style: italic; line-height: 1.5; }
+  .alert-catalyst { font-size: 11px; color: rgba(255,255,255,0.55); line-height: 1.6; padding-left: 14px; position: relative; margin-bottom: 2px; }
+  .alert-catalyst::before { content: '▸'; position: absolute; left: 0; font-size: 8px; top: 2px; opacity: 0.7; }
+  .alert-no-news {
+    font-size: 11px; color: rgba(255,255,255,0.3); font-style: italic; margin-bottom: 8px;
+    padding: 6px 10px; background: rgba(255,255,255,0.02); border-radius: 2px;
+  }
+  .alert-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.04); padding-top: 8px; margin-top: 4px;
+    font-size: 9px; color: var(--text-faint);
+  }
+  .alert-footer-right { display: flex; gap: 8px; }
+
+  .empty { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.15); font-size: 12px; }
+  .page-footer {
+    margin-top: 40px; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.04);
+    font-size: 9px; color: rgba(255,255,255,0.12); letter-spacing: 0.05em; text-align: center;
+  }
+
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div class="live-dot" id="liveDot"></div>
+      <h1 class="title">SENTINEL</h1>
+      <span class="subtitle">V1 ANOMALY TRACKER</span>
+    </div>
+    <div class="header-meta">
+      <span>506 tickers · 5 tiers · Kronos-mini</span>
+      <span>Finnhub + GDELT dual-source</span>
+      <span id="lastCycle"></span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats" id="statsBar"></div>
+
+  <!-- Controls -->
+  <div class="controls" id="controls"></div>
+  <div class="divider"></div>
+  <div class="filter-count" id="filterCount"></div>
+
+  <!-- Feed -->
+  <div id="feed"></div>
+
+  <!-- Footer -->
+  <div class="page-footer" id="pageFooter"></div>
+</div>
+
+<script>
+(function() {
+  const POLL_INTERVAL = 30000; // check for new alerts every 30s
+  const ALERTS_URL = 'alerts.json';
+  const TIER_LABELS = { 1: 'T1·BELL', 2: 'T2·BETA', 3: 'T3·ETF', 4: 'T4·MACRO', 5: 'T5·SMCAP' };
+  const SENTIMENTS = ['BULLISH', 'BEARISH', 'UNCERTAIN', 'EVENT-DRIVEN'];
+  const SENTIMENT_COLORS = { BULLISH: '#00e676', BEARISH: '#ff1744', UNCERTAIN: '#ffab00', 'EVENT-DRIVEN': '#00b0ff' };
+
+  let allAlerts = [];
+  let knownIds = new Set();
+  let filterTier = 0;
+  let filterSentiment = 'ALL';
+  let polling = true;
+
+  // ── Data Fetching ──────────────────────────────────────────
+
+  async function fetchAlerts() {
+    try {
+      const resp = await fetch(ALERTS_URL + '?t=' + Date.now());
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (!Array.isArray(data)) return;
+
+      const newAlerts = data.filter(a => !knownIds.has(a.id));
+      if (newAlerts.length > 0) {
+        newAlerts.forEach(a => knownIds.add(a.id));
+        allAlerts = data; // full replace since JSON is authoritative
+        render(newAlerts.map(a => a.id));
+        document.getElementById('lastCycle').textContent =
+          'last update: ' + formatTime(new Date().toISOString());
+      }
+    } catch (e) {
+      console.error('Fetch failed:', e);
+    }
+  }
+
+  // ── Rendering ──────────────────────────────────────────────
+
+  function render(newIds = []) {
+    renderStats();
+    renderControls();
+    renderFeed(newIds);
+    renderFooter();
+  }
+
+  function renderStats() {
+    const a = allAlerts;
+    const stats = [
+      { label: 'Total Alerts', value: a.length, color: '#e8eaed' },
+      { label: 'Unique Tickers', value: new Set(a.map(x => x.ticker)).size, color: '#80cbc4' },
+      { label: 'Avg σ', value: a.length ? (a.reduce((s, x) => s + (x.sigma || 0), 0) / a.length).toFixed(2) : '—', color: '#ffab00' },
+      { label: 'Bullish', value: a.filter(x => x.sentiment === 'BULLISH').length, color: '#00e676' },
+      { label: 'Bearish', value: a.filter(x => x.sentiment === 'BEARISH').length, color: '#ff1744' },
+      { label: 'Escalating', value: a.filter(x => x.isEscalating).length, color: '#ff6e40' },
+    ];
+    document.getElementById('statsBar').innerHTML = stats.map(s =>
+      `<div class="stat"><div class="stat-label">${s.label}</div><div class="stat-value" style="color:${s.color}">${s.value}</div></div>`
+    ).join('');
+  }
+
+  function renderControls() {
+    let html = '';
+    // Tier filters
+    [0,1,2,3,4,5].forEach(t => {
+      const active = filterTier === t ? ' active' : '';
+      const label = t === 0 ? 'ALL' : TIER_LABELS[t];
+      html += `<button class="btn${active}" onclick="setTier(${t})">${label}</button>`;
+    });
+    html += '<div class="separator"></div>';
+    // Sentiment filters
+    ['ALL', ...SENTIMENTS].forEach(s => {
+      const active = filterSentiment === s ? ' active' : '';
+      const col = SENTIMENT_COLORS[s];
+      const style = col && filterSentiment === s ? `color:${col};border-color:${col}44;background:${col}18` : '';
+      html += `<button class="btn${active}" style="${style}" onclick="setSentiment('${s}')">${s}</button>`;
+    });
+    document.getElementById('controls').innerHTML = html;
+  }
+
+  function renderFeed(newIds = []) {
+    const filtered = allAlerts.filter(a => {
+      if (filterTier > 0 && a.tier !== filterTier) return false;
+      if (filterSentiment !== 'ALL' && a.sentiment !== filterSentiment) return false;
+      return true;
+    });
+
+    document.getElementById('filterCount').textContent =
+      `${filtered.length} alert${filtered.length !== 1 ? 's' : ''} showing` +
+      (filterTier > 0 || filterSentiment !== 'ALL' ? ' (filtered)' : '');
+
+    if (filtered.length === 0) {
+      document.getElementById('feed').innerHTML =
+        `<div class="empty">${allAlerts.length === 0 ? 'Waiting for first pipeline cycle...' : 'No alerts match current filters.'}</div>`;
+      return;
+    }
+
+    document.getElementById('feed').innerHTML = filtered.map(a => buildCard(a, newIds.includes(a.id))).join('');
+  }
+
+  function buildCard(a, isNew) {
+    const sClass = (a.sentiment || 'uncertain').toLowerCase().replace('-', '-');
+    const sColor = SENTIMENT_COLORS[a.sentiment] || '#ffab00';
+    const toneVal = a.gdeltTone != null ? parseFloat(a.gdeltTone) : null;
+    const toneColor = toneVal != null ? (toneVal > 0 ? '#00e676' : toneVal < -2 ? '#ff1744' : '#ffab00') : null;
+
+    let catalystHtml = '';
+    if (a.catalysts && a.catalysts.length) {
+      catalystHtml = a.catalysts.map(c =>
+        `<div class="alert-catalyst" style="color:${sColor}20">${c}</div>`
+      ).join('');
+      // fix: catalyst text color
+      catalystHtml = a.catalysts.map(c =>
+        `<div class="alert-catalyst"><span style="color:${sColor}">${''}</span>${c}</div>`
+      ).join('');
+    } else {
+      catalystHtml = '<div class="alert-no-news">No news sources returned articles. Volatility signal only.</div>';
+    }
+
+    return `
+    <div class="alert-card ${sClass}${isNew ? ' new' : ''}">
+      <div class="alert-header">
+        <span class="alert-ticker">${a.ticker}</span>
+        <span class="alert-company">${a.company || ''}</span>
+        <div class="alert-badges">
+          ${a.isEscalating ? '<span class="badge badge-escalating">ESCALATING</span>' : ''}
+          <span class="badge badge-sentiment" style="color:${sColor}">${a.sentiment || 'UNCERTAIN'}</span>
+          <span class="badge badge-tier">${TIER_LABELS[a.tier] || '?'}</span>
+        </div>
+      </div>
+      <div class="alert-metrics">
+        <div class="metric-group">
+          <div class="metric-label">Sigma</div>
+          <div class="metric-value sigma" style="color:${sColor}">${(a.sigma || 0).toFixed(2)}σ</div>
+        </div>
+        <div class="metric-group bordered">
+          <div class="metric-label">Last Close</div>
+          <div class="metric-value">$${parseFloat(a.lastClose || 0).toFixed(2)}</div>
+        </div>
+        <div class="metric-group">
+          <div class="metric-label">Forecast Range</div>
+          <div class="metric-value">$${a.forecastLow} — $${a.forecastHigh}</div>
+        </div>
+        <div class="metric-group">
+          <div class="metric-label">Baseline Avg</div>
+          <div class="metric-value" style="color:rgba(255,255,255,0.5)">$${a.baselineRange}</div>
+        </div>
+        ${toneVal != null ? `
+        <div class="metric-group">
+          <div class="metric-label">GDELT Tone</div>
+          <div class="metric-value" style="color:${toneColor}">${toneVal > 0 ? '+' : ''}${a.gdeltTone}</div>
+        </div>` : ''}
+      </div>
+      <div class="alert-verdict">${a.verdict || ''}</div>
+      ${catalystHtml}
+      <div class="alert-footer">
+        <span>${formatTime(a.timestamp)} · ${formatDate(a.timestamp)}</span>
+        <div class="alert-footer-right">
+          <span>src: ${a.newsSource || '?'}</span>
+          ${a.articleCount ? `<span>${a.articleCount} articles</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderFooter() {
+    document.getElementById('pageFooter').textContent =
+      `SENTINEL V1 · Kronos-mini · Alpaca + Finnhub + GDELT · ${allAlerts.length} total alerts accumulated`;
+  }
+
+  // ── Helpers ────────────────────────────────────────────────
+
+  function formatTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  }
+  function formatDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  // ── Global control functions ───────────────────────────────
+
+  window.setTier = function(t) { filterTier = t; render(); };
+  window.setSentiment = function(s) { filterSentiment = s; render(); };
+
+  // ── Init ───────────────────────────────────────────────────
+
+  fetchAlerts();
+  render();
+  setInterval(fetchAlerts, POLL_INTERVAL);
+
+})();
+</script>
+</body>
+</html>
